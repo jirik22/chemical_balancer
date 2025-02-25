@@ -1,3 +1,13 @@
+def smallest_int_ratio(lst:list) -> list:
+    #todo
+    minimum = min(lst)
+    print(lst)
+
+    lst = [round(i*2/minimum) for i in lst]
+    print(lst)
+    return lst
+
+
 def comp_to_dict(comp:str) -> dict:
     """
     Function to convert a chemical compound to a dictionary with the elements and their quantities.
@@ -61,11 +71,13 @@ def comp_to_dict(comp:str) -> dict:
     return comp_dict
             
 def split_equation(eqation):
+    eqation = eqation.replace(" ", "")
     #split the equation in the two sides
     eqation = eqation.strip().split("=")
     #split the compounds in the sides
     left = eqation[0].split("+")
     right = eqation[1].split("+")
+    
     
     #list of elements in the equation
     elements = []
@@ -113,24 +125,47 @@ def balance_equation(reactants:list, products:list, elements:list) -> list:
                 M_coeff[i,j+reactN] = -int(product[ele])
     
     
-    print(M_coeff)
-
-    #solve the equation
-    #coef = np.linalg.lstsq(M_coeff, ZER)
     from scipy.linalg import null_space
+    #compute the null space of the matrix
+    null = list(null_space(M_coeff)[:,0])
 
-    null = null_space(M_coeff)
+    #find smallest integer solution
+    
+    ratio = smallest_int_ratio(null)
+    return ratio
+    
+def print_equation(ratio:list, inp:str):
+    
+    #parse input
+    inp = inp.replace(" ", "")
+    eqation = inp.split("=")
+    eqation[0] = eqation[0].split("+")
+    eqation[1] = eqation[1].split("+")
 
-    print(null)
-
+    
+    #print the balanced equation
+    out = ""
+    for i,reactant in enumerate(eqation[0]):
+        out += str(ratio[i]) + reactant + " + "
+    out = out[:-2] + " = "
+    for i,product in enumerate(eqation[1]):
+        out += str(ratio[-i]) + product + " + "
+    out = out[:-2]
+    print(out)
         
-    
+   
+        
+def main():   
+    inp = "Cu + HNO3 = Cu(NO3)2 + NO + H2O"
+    react, prod, elem = split_equation(inp)
+    print(prod)
 
-react, prod, elem = split_equation("Cu + HNO3 = Cu(NO3)2 + NO + H2O")
+    ratio = balance_equation(react, prod, elem)
+    print_equation(ratio, inp)
+    
+if __name__ == "__main__":
+    main()        
 
-balance_equation(react, prod, elem)
-    
-    
 
 
 
