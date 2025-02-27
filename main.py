@@ -1,3 +1,10 @@
+#todo
+# water coordination CuSO4 * 5H2O
+# charges
+# testes
+# smallest_int_ratio
+# long numbers
+
 def smallest_int_ratio(lst:list) -> list:
     #todo
     minimum = min(lst)
