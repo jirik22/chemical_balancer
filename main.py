@@ -1,18 +1,16 @@
+import ratios
+
 #todo
 # water coordination CuSO4 * 5H2O
 # charges
 # testes
 # smallest_int_ratio
 # long numbers
+# pretty code
+# error handling
 
-def smallest_int_ratio(lst:list) -> list:
-    #todo
-    minimum = min(lst)
-    print(lst)
 
-    lst = [round(i*2/minimum) for i in lst]
-    print(lst)
-    return lst
+
 
 
 def comp_to_dict(comp:str) -> dict:
@@ -78,6 +76,21 @@ def comp_to_dict(comp:str) -> dict:
     return comp_dict
             
 def split_equation(eqation):
+    """
+    Function to split the equation in the reactants, products and elements
+    Args:
+        eqation: string with the equation 
+    Returns:
+        reactants: list of dictionaries with the elements and their quantities in the reactants 
+        (each dictionary is one compound)
+        
+        products: list of dictionaries with the elements and their quantities in the products,
+        (each dictionary is one compound)
+        
+        elements: list with the elements in the equation
+    
+    """
+    
     eqation = eqation.replace(" ", "")
     #split the equation in the two sides
     eqation = eqation.strip().split("=")
@@ -111,6 +124,16 @@ def split_equation(eqation):
     
     
 def balance_equation(reactants:list, products:list, elements:list) -> list:
+    """
+    Function to solve the stechiometry of a chemical equation using number of atoms of each element.
+    Args:
+        reactants: list of dictionaries with the elements and their quantities in the reactants
+        products: list of dictionaries with the elements and their quantities in the products
+        elements: list with the elements in the equation
+    
+    
+    """
+    
     import numpy as np
     
     
@@ -138,10 +161,20 @@ def balance_equation(reactants:list, products:list, elements:list) -> list:
 
     #find smallest integer solution
     
-    ratio = smallest_int_ratio(null)
+    ratio = ratios.float_to_ratio(null)
     return ratio
     
 def print_equation(ratio:list, inp:str):
+    """
+    Function to compose balanced equation from the ratio of the elements
+    Args:
+        ratio: list with the ratio of the elements
+        inp: string with the input equation
+        
+    Returns:
+        balanced_eq: string with the balanced equation
+    
+    """
     
     #parse input
     inp = inp.replace(" ", "")
@@ -151,24 +184,23 @@ def print_equation(ratio:list, inp:str):
 
     
     #print the balanced equation
-    out = ""
+    balanced_eq = ""
     for i,reactant in enumerate(eqation[0]):
-        out += str(ratio[i]) + reactant + " + "
-    out = out[:-2] + " = "
+        balanced_eq += str(ratio[i]) + reactant + " + "
+    balanced_eq = balanced_eq[:-2] + " = "
     for i,product in enumerate(eqation[1]):
-        out += str(ratio[-i]) + product + " + "
-    out = out[:-2]
-    print(out)
-        
+        balanced_eq += str(ratio[-i]) + product + " + "
+    balanced_eq = balanced_eq[:-2]
+    return balanced_eq        
    
         
 def main():   
     inp = "Cu + HNO3 = Cu(NO3)2 + NO + H2O"
     react, prod, elem = split_equation(inp)
-    print(prod)
 
     ratio = balance_equation(react, prod, elem)
-    print_equation(ratio, inp)
+    balanced_equation = print_equation(ratio, inp)
+    print(balanced_equation)
     
 if __name__ == "__main__":
     main()        
