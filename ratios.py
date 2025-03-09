@@ -16,12 +16,10 @@ def float_to_ratio(ratio:list) -> list:
     minim = min(ratio)
     
     for i in range(len(ratio)):
-        ratio[i] = round((ratio[i]*1000/minim))
+        ratio[i] = round((ratio[i]/minim)*100000)
         
     gcd_ratio = gcd_list(ratio)
     for i in range(len(ratio)):
         ratio[i] = ratio[i]//gcd_ratio
         
-    return ratio
-
-print(float_to_ratio([8/60, 10/60, 8/60, 7/60])) #   [8, 10, 8, 7]
+    return ratio 
