@@ -38,14 +38,25 @@ class TestRatios():
     #def test_random(self):
         #self.assertDictEqual(ratios.float_to_ratio([8/60, 10/60, 8/60, 7/60]), [8, 10, 8, 7]) 
 
-class TestWhole(unittest.TestCase):
+class TestWholeProgram(unittest.TestCase):
     def testOxidationReduction(self):
-        self.assertEqual(main.main("H2O2 + Cr = CrO3 + H2O"), "3H2O2 + 1Cr = 1CrO3 + 3H2O")
+        self.assertEqual(main.main("H2O2 + Cr = CrO3 + H2O"), "3H2O2 + Cr = CrO3 + 3H2O")
     def testLongEquation(self):
-        self.assertEqual(main.main("H2O2 + KI + H2S2O3 = H2O + I2 + K2S4O6O4"), "6H2O2 + 2KI + 2H2S2O3 = 8H2O + 1I2 + 1K2S4O6O4")
+        self.assertEqual(main.main("H2O2 + KI + H2S2O3 = H2O + I2 + K2S4O6O4"), "6H2O2 + 2KI + 2H2S2O3 = 8H2O + I2 + K2S4O6O4")
     def testHydrates(self):
-        self.assertEqual(main.main("CuSO4*5H2O = CuSO4 + H2O"), "1CuSO4*5H2O = 1CuSO4 + 5H2O")
+        self.assertEqual(main.main("CuSO4*5H2O = CuSO4 + H2O"), "CuSO4*5H2O = CuSO4 + 5H2O")
     def testComplexCompounds(self):
-        self.assertEqual(main.main("NH3 + CuSO4 = [Cu(NH3)4]SO4"), "4NH3 + 1CuSO4 = 1[Cu(NH3)4]SO4")
+        self.assertEqual(main.main("NH3 + CuSO4 = [Cu(NH3)4]SO4"), "4NH3 + CuSO4 = [Cu(NH3)4]SO4")     
+    def testAdditionalProducts(self):
+        with self.assertRaises(ValueError):
+            main.main("CrO5 = CrO5 + KSO5N9")
+    def testAdditionalReactants(self):
+        with self.assertRaises(ValueError):
+            main.main("CrO5 = CrO5 + N15[CrO5]2")        
+    def testUnbalancable(self):
+        with self.assertRaises(ValueError):
+            main.main("CrO5 = CrO5 + N15[CrO5]2")
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -1,12 +1,30 @@
 import ratios
+from scipy.linalg import null_space
 
 # todo
 # charges
+
 # testes
 # smallest_int_ratio
+
 # pretty code
+
 # error handling
-# dont write ones
+
+
+def parse_eq_to_left_right(eqation: str) -> str:  
+    eqation = eqation.replace(" ", "")
+    
+    # split the equation to reactants and products
+    eqation = eqation.split("=")
+    
+    # split to the compounds
+    left = eqation[0].split("+")
+    right = eqation[1].split("+")
+    
+    return left, right
+    
+    
 def comp_to_dict(comp: str) -> dict:
     """
     Function to convert a chemical compound to a dictionary with the elements and their quantities.
@@ -43,6 +61,9 @@ def comp_to_dict(comp: str) -> dict:
         if let.isalpha() and let.isupper():
             # create name of element
             ele_name = let + ele_name
+            
+            if len(ele_name) > 2:
+                raise ValueError(f"Invalid element name in: {comp[::-1]}")
             # add element to dictionary
             if ele_name in comp_dict:
                 comp_dict[ele_name] += exp * exponents[-1]
@@ -53,7 +74,7 @@ def comp_to_dict(comp: str) -> dict:
 
         # lower case means the element name has two letters
         elif let.isalpha() and let.islower():
-            ele_name = let
+            ele_name += let
             
         # reading brackets
         elif let == "(" or let == "[":
@@ -73,12 +94,12 @@ def comp_to_dict(comp: str) -> dict:
     return comp_dict
 
 
-
-def split_equation(eqation):
+def split_equation(left: list, right: list) -> list:
     """
     Function to split the equation in the reactants, products and elements
     Args:
-        eqation: string with the equation
+        left: list with all compounds in the left side of the equation
+        right: list with all compounds in the right side of equation
     Returns:
         reactants: list of dictionaries with the elements and their quantities in the reactants
         (each dictionary is one compound)
@@ -89,35 +110,37 @@ def split_equation(eqation):
         elements: list with the elements in the equation
 
     """
-
-    eqation = eqation.replace(" ", "")
-    # split the equation in the two sides
-    eqation = eqation.strip().split("=")
-    # split the compounds in the sides
-    left = eqation[0].split("+")
-    right = eqation[1].split("+")
-
-    # list of elements in the equation
-    elements = []
-
-    reactants = []
+    
+    elementsR = []      # elements in the reactants
+    reactants = []      # dictionaries with elements and their quantities for every reactant
+    elementsP = []      # elements in the products
+    products = []       # dictionaries with elements and their quantities for every product
+ 
+    # go through all reactants and parse them to dictionaries
     for reactant in left:
         dictR = comp_to_dict(reactant)
-
-        # add the elements to the list of elements
-        for element in dictR:
-            if element not in elements:
-                elements.append(element)
-
         reactants.append(dictR)
-
-    products = []
+        
+        # update elements list
+        for element in dictR :
+            if element not in elementsR:
+                elementsR.append(element)
+    
+    # go through all products and parse them to dictionaries
     for product in right:
         dictP = comp_to_dict(product)
-
         products.append(dictP)
+       
+        # update elements list
+        for element in dictP:
+            if element not in elementsP:
+                elementsP.append(element)
 
-    return reactants, products, elements
+    # check if the elements in the reactants and products are the same if not --> impossible to balance
+    if sorted(elementsR) != sorted(elementsP):
+        raise ValueError("Equation is unbalancable")
+
+    return reactants, products, elementsR
 
 
 def balance_equation(reactants: list, products: list, elements: list) -> list:
@@ -127,86 +150,89 @@ def balance_equation(reactants: list, products: list, elements: list) -> list:
         reactants: list of dictionaries with the elements and their quantities in the reactants
         products: list of dictionaries with the elements and their quantities in the products
         elements: list with the elements in the equation
-
-
+    Returns:
+        ratio: list with the float ratio of the compounds in the equation
     """
-
-    import numpy as np
-
-    reactN = len(reactants)
-    prodN = len(products)
-
-    # matrix of coefficients
-
-    M_coeff = np.zeros((len(elements), reactN + prodN))
-    M_coeff = M_coeff.astype(int)
-
+    reactN = len(reactants) # number of reactants
+    prodN = len(products)   # number of products
+    
+    # create matrix of coefficients
+    M_coeff = [[0 for i in range(reactN + prodN)] for j in range(len(elements))]
+    
     # create equation for every element
     for i, ele in enumerate(elements):
         for j, reactant in enumerate(reactants):
             if ele in reactant:
-                M_coeff[i, j] = int(reactant[ele])
+                M_coeff[i][j] = int(reactant[ele])
         for j, product in enumerate(products):
             if ele in product:
-                M_coeff[i, j + reactN] = -int(product[ele])
-
-    from scipy.linalg import null_space
+                M_coeff[i][j + reactN] = -int(product[ele])
 
     # compute the null space of the matrix
-    null = list(null_space(M_coeff)[:, 0])
+    null = null_space(M_coeff)
+    
+    #if there is no value in the null space, the equation is unbalancable
+    if null.size == 0:
+        raise ValueError("Equation is unbalancable")
 
+    null = list(null[:, 0])
     # find smallest integer solution
     ratio = ratios.float_to_ratio(null)
     return ratio
 
 
-def print_equation(ratio: list, inp: str):
+def build_balanced_equation(left: list, right: list, ratio: list) -> str:
     """
     Function to compose balanced equation from the ratio of the elements
     Args:
-        ratio: list with the ratio of the elements
-        inp: string with the input equation
+        left: list with all compounds in the left side of the equation
+        right: list with all compounds in the right side of the equation
+        ratio: list with the float ratio of the compounds in the equation
 
     Returns:
         balanced_eq: string with the balanced equation
 
     """
-
-    # parse input
-    inp = inp.replace(" ", "")
-    eqation = inp.split("=")
-    eqation[0] = eqation[0].split("+")
-    eqation[1] = eqation[1].split("+")
-
-    # print the balanced equation
-    balanced_eq = ""
+    balanced_eq = ""    #string to store the balanced equation
     
-
-    # add reactants
-    for i, reactant in enumerate(eqation[0]):
-        balanced_eq += str(ratio[i]) + reactant + " + "
-        
+    # write down reactants
+    for i, reactant in enumerate(left):
+        coefficient = ratio[i]
+        if coefficient == 1: # dont write ones
+            balanced_eq += reactant + " + "
+        else:
+            balanced_eq += str(coefficient) + reactant + " + "
+            
+    # equal sign
     balanced_eq = balanced_eq[:-3] + " = "
     
-    # add products
-    for j, product in enumerate(eqation[1]):
-
-        balanced_eq += str(ratio[j+len(eqation[0])]) + product + " + "
+    # write down products
+    for j, product in enumerate(right):
+        coefficient = ratio[j+len(left)]
+        if coefficient == 1: # dont write ones
+            balanced_eq += product + " + "
+        else:
+            balanced_eq += str(coefficient) + product + " + "
         
     balanced_eq = balanced_eq[:-3]
     return balanced_eq
 
 
 def main(inp):
+    left, right = parse_eq_to_left_right(inp)
+    react, prod, elem = split_equation(left, right)  
     
-    react, prod, elem = split_equation(inp)
+    print(left, right)
     ratio = balance_equation(react, prod, elem)
-    balanced_equation = print_equation(ratio, inp)
-    print(balanced_equation)
+    
+    print(ratio)
+    balanced_equation = build_balanced_equation(left, right, ratio)
     return balanced_equation
     
-
-
 if __name__ == "__main__":
-    inp = "H2O2 + Cr = CrO3 + H2O"
-    main(inp)
+    #inp = "H2O2 + KI + H2S2O3 = H2O + I2 + K2S4O6O4"
+    #inp = "H2O2 + KI = K2S4O6O4"
+    #inp = "CuSO4*5H2O = CuSO4 + H2O"
+    inp = "CuSO4*5H2O = CuSO4 + H2O"
+    out = main(inp)
+    print(out)
