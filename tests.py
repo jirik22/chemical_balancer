@@ -23,20 +23,22 @@ class TestComptodict():
 
  
  
-class TestRatios():
+class TestRatios(unittest.TestCase):
     def test_float_to_ratio(self):
-        self.assertDictEqual(ratios.float_to_ratio([0.5, 0.25, 0.75]), [2, 1, 3])
-        
-    #def test_long_ratio(self):
-        #self.assertDictEqual(ratios.float_to_ratio([0.29704, 0.792114, 0.29704, 0.19802, 0.39605]), [3, 8, 3, 2, 4])
-        
+        self.assertEqual(ratios.float_to_ratio([0.5, 0.25, 0.75]), [2, 1, 3])        
     def test_fractions(self):
-        self.assertDictEqual(ratios.float_to_ratio([1/3,2/3]), [1, 2])
-        
+        self.assertEqual(ratios.float_to_ratio([1/3,2/3]), [1, 2])
     def test_long_fractions(self):
-        self.assertDictEqual(ratios.float_to_ratio([2/53, 5/53, 8/53, 6/53]), [2, 5, 8, 6])
-    #def test_random(self):
-        #self.assertDictEqual(ratios.float_to_ratio([8/60, 10/60, 8/60, 7/60]), [8, 10, 8, 7]) 
+        self.assertEqual(ratios.float_to_ratio([2/53, 5/53, 8/53, 6/53, 12/53, 62/53, 154/53]), [2, 5, 8, 6, 12, 62, 154])
+    def test_periodic_threes(self):
+        self.assertEqual(ratios.float_to_ratio([8/60, 10/60, 8/60, 7/60]), [8, 10, 8, 7])
+    def test_larger_decimals(self):
+        self.assertEqual(ratios.float_to_ratio([0.125, 0.875, 0.250]), [1, 7, 2])
+    def test_irrational(self):
+        sqrt2 = 2**(1/2)
+        self.assertEqual(ratios.float_to_ratio([5*sqrt2, 11*sqrt2, 4*sqrt2]), [5, 11, 4])
+
+        
 
 class TestWholeProgram(unittest.TestCase):
     def testOxidationReduction(self):
@@ -47,6 +49,21 @@ class TestWholeProgram(unittest.TestCase):
         self.assertEqual(main.main("CuSO4*5H2O = CuSO4 + H2O"), "CuSO4*5H2O = CuSO4 + 5H2O")
     def testComplexCompounds(self):
         self.assertEqual(main.main("NH3 + CuSO4 = [Cu(NH3)4]SO4"), "4NH3 + CuSO4 = [Cu(NH3)4]SO4")     
+    def testLongCompoudn(self):
+        self.assertEqual(main.main("C2Ne15OPo4I8ULa12 = C + Ne + O + Po + I + U + La"), "C2Ne15OPo4I8ULa12 = 2C + 15Ne + O + 4Po + 8I + U + 12La") 
+    def testBigCofficients(self):
+        self.assertEqual(main.main("Cu23547K8944 = Cu + K"), "Cu23547K8944 = 23547Cu + 8944K")            
+    def testHardBalancing(self):
+        self.assertEqual(main.main("Cu + HNO3 = CuNO3 + NO + H2O"), "3Cu + 4HNO3 = 3CuNO3 + NO + 2H2O")
+    def testHardBalancingII(self):
+        self.assertEqual(main.main("Zn + HNO3 = Zn(NO3)2 + H2O + N2O"), "4Zn + 10HNO3 = 4Zn(NO3)2 + 5H2O + N2O")
+    def testHardBalancingIII(self):
+        self.assertEqual(main.main("NH4Cl + (CuOH)2CO3 = H2O + CO2 + Cu + N2 + CuCl2"), "2NH4Cl + 2(CuOH)2CO3 = 6H2O + 2CO2 + 3Cu + N2 + CuCl2")
+    def testHardBalancingIV(self):
+        self.assertEqual(main.main("H2SO4 + K2Cr2O7 + KI = H2O + K2SO4 + I2 + Cr2(SO4)3"), "7H2SO4 + K2Cr2O7 + 6KI = 7H2O + 4K2SO4 + 3I2 + Cr2(SO4)3")
+
+        
+        
     def testAdditionalProducts(self):
         with self.assertRaises(ValueError):
             main.main("CrO5 = CrO5 + KSO5N9")
@@ -56,6 +73,7 @@ class TestWholeProgram(unittest.TestCase):
     def testUnbalancable(self):
         with self.assertRaises(ValueError):
             main.main("CrO5 = CrO5 + N15[CrO5]2")
+
 
 
 if __name__ == "__main__":

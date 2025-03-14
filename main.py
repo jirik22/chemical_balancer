@@ -167,7 +167,6 @@ def balance_equation(reactants: list, products: list, elements: list) -> list:
         for j, product in enumerate(products):
             if ele in product:
                 M_coeff[i][j + reactN] = -int(product[ele])
-
     # compute the null space of the matrix
     null = null_space(M_coeff)
     
@@ -222,10 +221,8 @@ def main(inp):
     left, right = parse_eq_to_left_right(inp)
     react, prod, elem = split_equation(left, right)  
     
-    print(left, right)
     ratio = balance_equation(react, prod, elem)
     
-    print(ratio)
     balanced_equation = build_balanced_equation(left, right, ratio)
     return balanced_equation
     
@@ -233,6 +230,6 @@ if __name__ == "__main__":
     #inp = "H2O2 + KI + H2S2O3 = H2O + I2 + K2S4O6O4"
     #inp = "H2O2 + KI = K2S4O6O4"
     #inp = "CuSO4*5H2O = CuSO4 + H2O"
-    inp = "CuSO4*5H2O = CuSO4 + H2O"
+    inp = "MnO2 + OH + Cu = H + MnO4 + Cu"
     out = main(inp)
     print(out)
