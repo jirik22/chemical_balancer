@@ -1,22 +1,23 @@
 import ratios
 from scipy.linalg import null_space
 
-# todo
-# charges
 
-# testes
-# smallest_int_ratio
-
-# pretty code
-
-# error handling
-
-
-def parse_eq_to_left_right(eqation: str) -> str:  
+def parse_eq_to_left_right(eqation: str) -> str:
+    """
+    Function to parse the equation to left and right side of the equation
+    Args:
+        eqation: string with the equation
+    Returns:
+        left: list with all compounds in the left side of the equation
+        right: list with all compounds in the right side of the equation
+    """
     eqation = eqation.replace(" ", "")
     
     # split the equation to reactants and products
     eqation = eqation.split("=")
+    
+    if len(eqation) != 2:
+        raise ValueError("Invalid equation format")
     
     # split to the compounds
     left = eqation[0].split("+")
@@ -24,7 +25,7 @@ def parse_eq_to_left_right(eqation: str) -> str:
     
     return left, right
     
-    
+   
 def comp_to_dict(comp: str) -> dict:
     """
     Function to convert a chemical compound to a dictionary with the elements and their quantities.
@@ -37,11 +38,11 @@ def comp_to_dict(comp: str) -> dict:
     comp_dict = {}      # dictionary to store the elements and their quantities
     exponents = [1]     # stack of multipliers during the iteration
     exp = 1             # last multiplier
-    ele_name = ""       # element name
-    reading_num = False # reading number
+    ele_name = ""       # name of element which is being loaded
+    reading_num = False # boolean to determine if program is currently reading number
 
     
-    # reverse the compound to make it easier to iterate
+    # reverse the compound to make it easier to parse
     comp = comp[::-1]
 
     # iterating over all characters in compound
@@ -49,7 +50,7 @@ def comp_to_dict(comp: str) -> dict:
         # reading number
         if let.isnumeric():
             if reading_num:
-                #horner scheme
+                #horner scheme for reading exponents(reversed)
                 exp = int(let) * 10**len(str(exp)) + exp
             else:
                 exp = int(let)
@@ -64,11 +65,15 @@ def comp_to_dict(comp: str) -> dict:
             
             if len(ele_name) > 2:
                 raise ValueError(f"Invalid element name in: {comp[::-1]}")
+
+            
             # add element to dictionary
             if ele_name in comp_dict:
                 comp_dict[ele_name] += exp * exponents[-1]
             else:
                 comp_dict[ele_name] = exp * exponents[-1]
+                
+            # reset the element name and exponent
             ele_name = ""
             exp = 1
 
@@ -138,7 +143,7 @@ def split_equation(left: list, right: list) -> list:
 
     # check if the elements in the reactants and products are the same if not --> impossible to balance
     if sorted(elementsR) != sorted(elementsP):
-        raise ValueError("Equation is unbalancable")
+        raise Exception("Equation is unbalancable")
 
     return reactants, products, elementsR
 
@@ -167,17 +172,17 @@ def balance_equation(reactants: list, products: list, elements: list) -> list:
         for j, product in enumerate(products):
             if ele in product:
                 M_coeff[i][j + reactN] = -int(product[ele])
+                
     # compute the null space of the matrix
     null = null_space(M_coeff)
     
     #if there is no value in the null space, the equation is unbalancable
     if null.size == 0:
-        raise ValueError("Equation is unbalancable")
+        raise Exception("Equation is unbalancable")
 
     null = list(null[:, 0])
-    # find smallest integer solution
-    ratio = ratios.float_to_ratio(null)
-    return ratio
+    
+    return null
 
 
 def build_balanced_equation(left: list, right: list, ratio: list) -> str:
@@ -218,18 +223,25 @@ def build_balanced_equation(left: list, right: list, ratio: list) -> str:
 
 
 def main(inp):
+    # parse the equation to left and right side of the equation
     left, right = parse_eq_to_left_right(inp)
+    
+    # parse compunds to dictionaries
     react, prod, elem = split_equation(left, right)  
     
-    ratio = balance_equation(react, prod, elem)
+    # create the matrix of coefficients and compute null space
+    float_ratio = balance_equation(react, prod, elem)
     
+    # convert the float ratio to int ratio
+    ratio = ratios.float_to_ratio(float_ratio)
+    
+    # build the balanced equation from the ratio
     balanced_equation = build_balanced_equation(left, right, ratio)
+    
     return balanced_equation
     
 if __name__ == "__main__":
-    #inp = "H2O2 + KI + H2S2O3 = H2O + I2 + K2S4O6O4"
-    #inp = "H2O2 + KI = K2S4O6O4"
-    #inp = "CuSO4*5H2O = CuSO4 + H2O"
-    inp = "MnO2 + OH + Cu = H + MnO4 + Cu"
+    print("Enter a reaction:")
+    inp = input("--> ")
     out = main(inp)
-    print(out)
+    print(f"--> {out}")
