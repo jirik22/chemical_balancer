@@ -22,11 +22,12 @@ def float_to_ratio(ratio:list) -> list:
         ratio: ratio of integers
     
     """
+    precision = 10e5
     #convert to int ration
     minim = min(ratio)
     
     for i in range(len(ratio)):
-        ratio[i] = round((ratio[i]/minim)*10e5)
+        ratio[i] = round((ratio[i]/minim)*precison)
       
     gcd_ratio = gcd_list(ratio)
     for i in range(len(ratio)):
